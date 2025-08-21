@@ -20,6 +20,7 @@
 ## **What is PostgreSQL Backup Server Manager?**
 
 A high-performance, real-time PostgreSQL replication system that automatically creates and manages multiple backup databases using Docker containers. Built with Go for maximum performance and reliability.
+This Program copies the data from Production DBs to Backup DBs in Real time
 
 ## ✨ **Key Features**
 
@@ -240,10 +241,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <p align="center">
   Made with ❤️ by <a href="https://github.com/Bas3line">@Bas3line</a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/github/stars/Bas3line/backup-postgres-server-manager?style=social" alt="GitHub Stars">
-  <img src="https://img.shields.io/github/forks/Bas3line/backup-postgres-server-manager?style=social" alt="GitHub Forks">
-  <img src="https://img.shields.io/github/watchers/Bas3line/backup-postgres-server-manager?style=social" alt="GitHub Watchers">
 </p>
