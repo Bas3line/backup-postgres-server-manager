@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/pg-manager/internal/replicator"
+	"github.com/gorilla/mux"
 )
 
 type Server struct {
@@ -24,10 +25,11 @@ func New(port int, repl *replicator.Replicator) *Server {
 
 func (s *Server) Start() error {
 	r := mux.NewRouter()
-
+	
 	r.HandleFunc("/health", s.healthHandler).Methods("GET")
 	r.HandleFunc("/status", s.statusHandler).Methods("GET")
 	r.HandleFunc("/query", s.queryHandler).Methods("POST")
+	r.HandleFunc("/logs", s.logsHandler).Methods("GET")
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
@@ -75,5 +77,25 @@ func (s *Server) queryHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"results": results,
 		"count":   len(results),
+	})
+}
+
+func (s *Server) logsHandler(w http.ResponseWriter, r *http.Request) {
+	limitStr := r.URL.Query().Get("limit")
+	limit := 100
+	
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	logs := s.replicator.GetLogs(limit)
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"logs":  logs,
+		"count": len(logs),
+		"limit": limit,
 	})
 }

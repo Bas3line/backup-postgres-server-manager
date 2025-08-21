@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -118,10 +119,12 @@ func (m *Manager) createBackupContainer(backup config.BackupDB, containerName st
 	}
 
 	cmd := exec.Command("docker", args...)
-	if err := cmd.Run(); err != nil {
-		return err
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to create backup container %s: %w\nOutput: %s", containerName, err, string(output))
 	}
 
+	log.Printf("Created backup container: %s on port %d", containerName, backup.Port)
 	return m.waitForDatabase(backup)
 }
 
@@ -132,8 +135,9 @@ func (m *Manager) waitForDatabase(backup config.BackupDB) error {
 	for i := 0; i < maxRetries; i++ {
 		cmd := exec.Command("docker", "exec", fmt.Sprintf("pg-manager-%s", backup.ID),
 			"pg_isready", "-h", "localhost", "-p", "5432", "-U", backup.User)
-
+		
 		if err := cmd.Run(); err == nil {
+			log.Printf("Backup database %s is ready", backup.ID)
 			return nil
 		}
 
@@ -158,7 +162,7 @@ func (m *Manager) StopBackupContainers() error {
 
 func (m *Manager) GetContainerStatus() map[string]string {
 	status := make(map[string]string)
-
+	
 	for _, backup := range m.cfg.Backups {
 		if backup.AutoCreate && backup.Active {
 			containerName := fmt.Sprintf("pg-manager-%s", backup.ID)
@@ -171,6 +175,6 @@ func (m *Manager) GetContainerStatus() map[string]string {
 			}
 		}
 	}
-
+	
 	return status
 }

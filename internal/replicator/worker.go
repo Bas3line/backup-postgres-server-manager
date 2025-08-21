@@ -3,9 +3,12 @@ package replicator
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/pg-manager/internal/db"
+	"github.com/pg-manager/internal/logger"
 )
 
 type Worker struct {
@@ -14,19 +17,22 @@ type Worker struct {
 	changesCh <-chan ChangeEvent
 	batchSize int
 	batch     []ChangeEvent
+	logger    *logger.Logger
 }
 
-func NewWorker(id int, backupDBs map[string]*sql.DB, changesCh <-chan ChangeEvent, batchSize int) *Worker {
+func NewWorker(id int, backupDBs map[string]*sql.DB, changesCh <-chan ChangeEvent, batchSize int, logger *logger.Logger) *Worker {
 	return &Worker{
 		id:        id,
 		backupDBs: backupDBs,
 		changesCh: changesCh,
 		batchSize: batchSize,
 		batch:     make([]ChangeEvent, 0, batchSize),
+		logger:    logger,
 	}
 }
 
 func (w *Worker) Start(ctx context.Context) {
+	log.Printf("Worker %d started", w.id)
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
@@ -34,6 +40,7 @@ func (w *Worker) Start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			w.processBatch()
+			log.Printf("Worker %d stopped", w.id)
 			return
 		case change, ok := <-w.changesCh:
 			if !ok {
@@ -57,8 +64,34 @@ func (w *Worker) processBatch() {
 		return
 	}
 
-	for _, backupDB := range w.backupDBs {
-		w.applyChanges(backupDB, w.batch)
+	successCount := 0
+
+	for backupID, backupDB := range w.backupDBs {
+		if err := w.applyChanges(backupDB, w.batch); err != nil {
+			w.logger.Error(fmt.Sprintf("Worker %d failed to apply changes to backup %s: %v", w.id, backupID, err))
+		} else {
+			successCount++
+		}
+	}
+
+	if successCount > 0 {
+		operations := make(map[string]int)
+		tables := make(map[string]int)
+		
+		for _, change := range w.batch {
+			operations[change.Operation]++
+			tables[change.Table]++
+		}
+		
+		for table := range tables {
+			for operation, opCount := range operations {
+				if opCount > 0 {
+					message := fmt.Sprintf("Worker %d processed %d %s operations on table %s to %d/%d backups", 
+						w.id, opCount, operation, table, successCount, len(w.backupDBs))
+					w.logger.Replication(operation, table, opCount, message)
+				}
+			}
+		}
 	}
 
 	w.batch = w.batch[:0]
