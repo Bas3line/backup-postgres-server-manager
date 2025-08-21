@@ -1,0 +1,53 @@
+{
+    "production": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "",
+      "password": "",
+      "database": "",
+      "ssl_mode": "disable"
+    },
+    "backups": [
+      {
+        "id": "backup1",
+        "host": "localhost",
+        "port": 5433,
+        "user": "",
+        "password": "",
+        "database": "",
+        "ssl_mode": "disable",
+        "priority": 1,
+        "active": true,
+        "auto_create": true,
+        "docker_image": "postgres:15"
+      },
+      {
+        "id": "backup2",
+        "host": "localhost",
+        "port": 5434,
+        "user": "",
+        "password": "",
+        "database": "",
+        "ssl_mode": "disable",
+        "priority": 2,
+        "active": true,
+        "auto_create": true,
+        "docker_image": "postgres:15"
+      }
+    ],
+    "server": {
+      "port": 8080
+    },
+    "replication": {
+      "batch_size": 1000,
+      "worker_count": 10,
+      "flush_interval": "5s",
+      "max_retries": 3,
+      "health_check_interval": "30s"
+    },
+    "docker": {
+      "network": "pg-manager-network",
+      "data_path": "./data"
+    }
+  }
+  
