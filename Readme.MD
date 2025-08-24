@@ -234,8 +234,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## **Support**
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/Bas3line/backup-postgres-server-manager/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/Bas3line/backup-postgres-server-manager/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Bas3line/db-mirror-orch/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Bas3line/db-mirror-orch/discussions)
 
 ---
 
