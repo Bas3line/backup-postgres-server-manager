@@ -59,8 +59,8 @@ github.com/lib/pq v1.10.9
 
 ### 1. Clone & Setup
 ```
-git clone https://github.com/Bas3line/backup-postgres-server-manager.git
-cd backup-postgres-server-manager
+git clone https://github.com/Bas3line/db-mirror-orch.git
+cd db-mirror-orch
 
 # Copy and configure settings
 cp config/config.example.json config/config.json
